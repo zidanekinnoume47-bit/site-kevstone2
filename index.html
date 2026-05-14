@@ -362,7 +362,111 @@
       }
     }
 
-    /* Mobile (max 576px) */
+    /* ========================================================= */
+    /* STRATÉGIE MOBILE : TOUS LES ÉLÉMENTS SUR UNE SEULE LIGNE  */
+    /* ========================================================= */
+    
+    /* Cible tous les mobiles de petite à moyenne largeur */
+    @media (max-width: 768px) {
+      .bas {
+        width: 100%;
+        /* Force la ligne unique même si les éléments se compressent */
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 4px;               /* Espace minimal entre les blocs */
+        padding: 8px 12px;      /* Padding plus serré */
+        border-radius: 50px;
+        margin: 30px auto 0;
+        overflow-x: auto;       /* Sécurité au cas où : scroll horizontal si vraiment trop serré */
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Chaque bloc statistique - restreindre l'espace consommé */
+      .bas div {
+        min-width: 0;           /* Permet au contenu de se réduire */
+        flex: 1 1 0;           /* Distribution égale de l'espace disponible */
+        text-align: center;
+        padding: 4px 2px;       /* très faible padding interne */
+        background: transparent;
+        border: none;           /* on enlève le border rouge de test */
+      }
+      
+      /* Réduction forte des chiffres (strong) */
+      .bas div strong {
+        font-size: 0.85rem;     /* texte très compact mais lisible */
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -0.2px; /* gain d'espace */
+        white-space: nowrap;    /* empêche le chiffre de se casser */
+      }
+      
+      /* Réduction du texte descriptif */
+      .bas div span {
+        font-size: 0.55rem;     /* très petit mais reste lisible sur mobile */
+        font-weight: 500;
+        white-space: nowrap;    /* sur une ligne */
+        opacity: 0.9;
+      }
+    }
+    
+    /* Pour les très petits mobiles (moins de 480px) -> compression maximale */
+    @media (max-width: 480px) {
+      .bas {
+        gap: 2px;                /* espace encore plus réduit */
+        padding: 6px 8px;
+      }
+      
+      .bas div strong {
+        font-size: 0.7rem;       /* adaptation extreme */
+      }
+      
+      .bas div span {
+        font-size: 0.45rem;
+      }
+    }
+    
+    /* Pour les mobiles très larges (ex: pliables jusqu'à 650px) on garde l'intégrité */
+    @media (min-width: 481px) and (max-width: 650px) {
+      .bas div strong {
+        font-size: 0.75rem;
+      }
+      .bas div span {
+        font-size: 0.5rem;
+      }
+      .bas {
+        gap: 4px;
+        padding: 8px 10px;
+      }
+    }
+    
+    /* Pour les anciens mobiles ou très petits écrans en paysage (max 400px) */
+    @media (max-width: 400px) {
+      .bas div strong {
+        font-size: 0.65rem;
+      }
+      .bas div span {
+        font-size: 0.4rem;
+      }
+      .bas {
+        gap: 2px;
+        padding: 6px 5px;
+        border-radius: 40px;
+      }
+    }
+    
+    /* Ajustement pour que les statistiques soient vraiment sur une ligne même si les termes sont longs */
+    @media (max-width: 768px) {
+      /* On réduit aussi les textes "Registration done" et "units sold till date" */
+      .bas div span {
+        max-width: 95%;
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis; /* optionnel pour les écrans très étroits mais on garde nowrap */
+        white-space: nowrap;
+      }
+    }
+
+    /* Mobile (max 576px) - on garde la cohérence avec les stats mais on corrige get */
     @media (max-width: 576px) {
       body {
         margin: 8px;
@@ -406,14 +510,6 @@
         padding: 12px 20px;
       }
       
-      .bas div strong {
-        font-size: 1.2rem;
-      }
-      
-      .bas div span {
-        font-size: 0.75rem;
-      }
-      
       .logo img {
         width: 70px;
       }
@@ -446,10 +542,24 @@
       }
     }
     
-    /* Ajustement pour que la bannière de statistiques reste lisible */
+    /* Ajustement pour que la bannière de statistiques reste lisible sur tablette */
     @media (min-width: 768px) and (max-width: 990px) {
       .bas div strong {
         font-size: 1.3rem;
+      }
+      /* On garde le flex-wrap original pour tablette (confortable) */
+      .bas {
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+    }
+    
+    /* Pour écrans entre 769px et 991px on ne casse pas la ligne unique sur tablette mais on garde wrap (précédent) */
+    /* Correction assurée : en dessous de 769px => nowrap */
+    @media (max-width: 768px) {
+      .bas {
+        flex-wrap: nowrap !important;    /* forcé pour tous les mobiles */
+        justify-content: space-evenly;
       }
     }
   </style>
@@ -534,7 +644,7 @@
     </div>
   </section>
 
-  <!-- SECTION BAS (STATISTIQUES) -->
+  <!-- SECTION BAS (STATISTIQUES) - MAINTENANT LES ÉLÉMENTS RESTENT SUR UNE MÊME LIGNE SUR TOUS LES MOBILES -->
   <section class="bas">
     <div>
       <strong>40K+</strong>
@@ -574,7 +684,7 @@
       }
       
       // Correction supplémentaire : si la fenêtre est redimensionnée et que le menu offcanvas est ouvert,
-      // on garde l'intégrité du layout (pas nécessaire mais sécurisé)
+      // on garde l'intégrité du layout
       window.addEventListener('resize', function() {
         if (window.innerWidth > 991) {
           // Si on passe en mode desktop alors que offcanvas est ouvert, on le ferme proprement
@@ -586,8 +696,28 @@
             }
           }
         }
+        
+        // Vérification responsive stats: pour les largeurs mobiles, on s'assure que le nowrap est maintenu
+        // (utile en cas de redimensionnement dynamique)
+        const basSection = document.querySelector('.bas');
+        if (basSection) {
+          if (window.innerWidth <= 768) {
+            basSection.style.flexWrap = 'nowrap';
+          } else if (window.innerWidth > 768 && window.innerWidth <= 991) {
+            basSection.style.flexWrap = 'wrap';
+          } else {
+            basSection.style.flexWrap = '';
+          }
+        }
       });
+      
+      // Force l'application du style nowrap immédiatement si la largeur correspond
+      if (window.innerWidth <= 768) {
+        const basSection = document.querySelector('.bas');
+        if (basSection) basSection.style.flexWrap = 'nowrap';
+      }
     })();
   </script>
 </body>
 </html>
+```
